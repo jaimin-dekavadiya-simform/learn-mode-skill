@@ -1,6 +1,6 @@
 ---
 name: learn-mode-builder
-description: Use when someone asks to build, generate, or create a personalized "learn-mode"-style answering skill for THEMSELVES — e.g. "build me a learn-mode skill", "generate a personalized answering skill based on this conversation", "make a skill like that other user's learn-mode but for me". Analyzes the CURRENT conversation for the invoking user's own question-asking and understanding patterns, then writes a fresh, personalized skill tailored to them. Never copies another user's learn-mode verbatim — every run re-derives the pattern from scratch.
+description: Use when someone asks to build, generate, or create a personalized "learn-mode"-style answering skill for THEMSELVES — e.g. "build me a learn-mode skill", "generate a personalized answering skill based on this conversation", "make a skill like that other user's learn-mode but for me". Analyzes the CURRENT conversation for the invoking user's own question-asking and understanding patterns — including whether those patterns vary by category of question (e.g. architecture vs. debugging vs. conceptual) — then writes a fresh, personalized skill tailored to them. Never copies another user's learn-mode verbatim — every run re-derives the pattern from scratch.
 ---
 
 # Learn-Mode Builder
@@ -25,6 +25,14 @@ Look back over this conversation's turns and identify the invoking user's own re
 - Any domain-specific quirks — e.g. they always want file:line citations, they always want a diagram,
   they always want a one-line takeaway at the end?
 
+**Does their pattern vary by category of question?** Compare how they reacted across different kinds
+of questions actually present in this conversation — e.g. did they demand source-verification for
+code/implementation questions but not for conceptual/definitional ones? Did they want a design verdict
+only on architecture-style questions but just want steps for tooling/config questions? Check this
+explicitly rather than averaging every reaction into one flat pattern — a user who verifies-hard on
+code but wants quick plain answers on concepts is not "moderately rigorous," they're rigorous
+*conditionally*, and flattening that loses real signal.
+
 **Honesty safeguard — do not fabricate a pattern from a thin conversation.** If the conversation so far
 is too short (a handful of exchanges, or all on unrelated one-off topics) to confidently identify a real
 recurring pattern, say so plainly instead of inventing one. In that case, either:
@@ -33,23 +41,50 @@ recurring pattern, say so plainly instead of inventing one. In that case, either
 - offer to build a lighter, more general-purpose starting skill now and refine it after a few more
   real exchanges.
 
+**Category safeguard — don't invent categories from a single-category conversation.** If everything
+asked so far has been one kind of question (e.g. all code-review questions), there's no evidence their
+pattern varies by category — build flat (see Step 2). Only treat the pattern as categorized when the
+conversation contains 2+ distinct question categories *and* the user's expected reaction actually
+differed between them. A conversation that spans categories but gets the *same* reaction every time
+(e.g. they always want file:line citations no matter the topic) is still a flat pattern — categorize
+based on divergent behavior, not divergent topics.
+
 Never assume the user's pattern resembles any other specific person's learn-mode skill. Every user is
 different — some want terse answers, some want maximal rigor, some want reassurance rather than
 critique. Derive the pattern from evidence in front of you.
 
-## Step 2 — Synthesize the pattern into the same shape as a learn-mode skill
+## Step 2 — Synthesize the pattern into the right shape
 
-Once you have real signal, write:
+First, decide the skill's shape based on Step 1's findings:
+
+- **Flat** (the default) — one rule list applying uniformly, used when no real category-varying signal
+  was found.
+- **Categorized** — used only when Step 1 found genuine category-varying signal. Instead of one flat
+  rule list, write a routing layer on top of the same rules: 2-4 categories actually observed in this
+  conversation, named from what was actually asked (e.g. "debugging questions" vs. "library-choice
+  questions" — not a generic template like "technical vs. non-technical"), each noting which rules
+  dominate or get skipped for that category. Keep this as *one skill file* with an internal routing
+  section — never split it into multiple separate skill files. Separate skills would compete on
+  Claude's skill-selection matching (a coarse, description-level match) for every question, and most
+  real questions blend categories rather than falling cleanly into one — a routing decision made
+  *inside* one skill's instructions, with the full question in view, is far more reliable than picking
+  between several similarly-triggered skills upfront. It would also duplicate every category-independent
+  rule (e.g. "verify before asserting") across files, so a future preference change has to be applied
+  in every copy instead of once.
+
+Then write, in whichever shape was chosen:
 
 1. **The recurring counter-questions this replaces** — 4-6 concrete follow-ups this specific user tends
    to ask, phrased in their own words where possible (quote or closely paraphrase actual things they
-   said in this conversation).
+   said in this conversation). If categorized, group these by category where the follow-up itself
+   differed.
 2. **How to answer instead** — a numbered list of concrete behaviors that front-load those follow-ups
    into the first response. Ground each instruction in what was actually observed, not a generic
    template. If this user never asked for source verification, don't invent a "verify before asserting"
    rule for them — include only what their own conversation actually supports, plus obviously-universal
    good practice (don't ask a clarifying question when a sensible default exists, scale depth to the
-   question).
+   question). If categorized, this is where the "calibrate by category" routing section goes — sitting
+   on top of the shared rules, not replacing them.
 3. **What NOT to do** — the failure modes to avoid for this person specifically (e.g. if they've shown
    they dislike padding, say so explicitly; if they've shown they want maximal depth every time, note
    that instead of a generic "don't over-answer" line).
@@ -68,15 +103,24 @@ Ask which scope they want (a short direct question is fine — this is exactly t
 genuinely theirs to make and not inferable). Also ask what they'd like the skill named — suggest one
 based on the theme you found (e.g. `learn-mode`, `concise-mode`, `rigorous-mode`) but let them override.
 
+Note: this scope question (project vs. user-level) is about *where the skill applies*, and is separate
+from the category-routing decision in Step 2 (which is about *how the skill behaves* once it applies).
+Don't conflate a request for a project-scoped skill with a request for a category-specific one — a
+project-scoped skill can still be flat, and a user-level skill can still be categorized.
+
 ## Step 4 — Write the skill file
 
 Use the same structural shape as a learn-mode skill (frontmatter `name` + `description`, then sections
 for the recurring questions it replaces, how to answer instead, and what not to do) — but with content
-entirely derived from Step 1-2's analysis of *this* user, not copied from any other skill.
+entirely derived from Step 1-2's analysis of *this* user, not copied from any other skill. If the
+pattern was categorized, the "how to answer instead" section includes the routing layer from Step 2,
+still inside this single file.
 
 Write the description so the skill auto-triggers broadly on substantive questions from this user (most
 learn-mode-style skills want to fire on "every substantive question," not just when explicitly named —
-say so in the description if that matches what the user wants).
+say so in the description if that matches what the user wants). If categorized, the description should
+still describe one broadly-triggering skill — the categories are an internal calibration detail, not
+separate trigger conditions for separate skills.
 
 ## Step 5 — Offer a backing memory entry (optional, ask first)
 
@@ -87,6 +131,7 @@ answered.
 
 ## Step 6 — Report back plainly
 
-Tell the user exactly what pattern you detected (in their own terms, not abstractly), where the file
-was saved, and how to check or edit it. If you had to guess at anything due to thin conversation signal,
-say so explicitly rather than presenting a low-confidence skill as a confident one.
+Tell the user exactly what pattern you detected (in their own terms, not abstractly), whether the
+resulting skill is flat or categorized and what evidence supported that call, where the file was saved,
+and how to check or edit it. If you had to guess at anything due to thin conversation signal, say so
+explicitly rather than presenting a low-confidence skill as a confident one.
