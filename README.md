@@ -1,117 +1,111 @@
 # Learn Mode Builder
 
-A [Claude Code](https://claude.com/claude-code) skill that builds you a **personalized**
-"learn-mode"-style answering skill — one shaped around how *you* actually ask questions and expect
-answers, derived from your own live conversation, not templated from anyone else's.
+This is a skill for [Claude Code](https://claude.com/claude-code). It builds you your **own**
+personal "learn-mode" skill — one that teaches Claude how *you* like questions answered, based on how
+you actually talk in your own conversations. It's not a fixed template; it's generated fresh for you
+each time.
 
-## The one skill you actually install
+## The skill you install
 
-| Skill | Purpose |
+| Skill | What it does |
 |---|---|
-| [`skills/learn-mode-builder`](skills/learn-mode-builder/SKILL.md) | Analyzes the invoking user's own question-asking and understanding patterns in the **current conversation**, then writes a fresh, personalized answering skill tailored to them. Never copies another person's `learn-mode` verbatim — every run re-derives the pattern from scratch. |
+| [`skills/learn-mode-builder`](skills/learn-mode-builder/SKILL.md) | Looks back at your current conversation, figures out how you like to be answered, and writes a new skill file just for you. It never copies someone else's skill — it works out your pattern from scratch every time. |
 
-This is the only skill meant to be installed for general use. See [Installation](#installation) below.
+This is the only skill you need to install. See [Installation](#installation) below.
 
-## What's in `examples/`
+## What's in the `examples/` folder
 
-| File | Purpose |
+| File | What it is |
 |---|---|
-| [`examples/codebase-learn-mode`](examples/codebase-learn-mode/SKILL.md) | A **sample output** of `learn-mode-builder` — one specific person's personalized skill for deep-diving a real codebase, kept here purely as a worked example of the shape and level of detail the builder produces (including the within-conversation category routing described below). |
+| [`examples/codebase-learn-mode`](examples/codebase-learn-mode/SKILL.md) | A sample skill that `learn-mode-builder` already generated for one person, for one specific use case (understanding a codebase). It's here just so you can see what the builder produces. |
 
-**This is not a skill you should install for yourself.** It encodes one particular person's observed
-pattern for *codebase-understanding conversations specifically* (source-verify hard on mechanism
-questions, skip the ceremony on plain definitions, give an opinionated verdict on design-critique
-questions, persist substantial findings as docs) — it will very likely be wrong for how *you* ask
-questions, and it's scoped to a context (a specific codebase, source-anchored verification) that may
-not even apply to what you're doing. If you copy it as-is, you're installing someone else's habits for
-someone else's context, not your own. The whole point of this repo is that you run
-`learn-mode-builder` and get a skill derived from *your* conversation instead.
+**Don't install this example for yourself.** It was written for one specific person and one specific
+situation (reading through a real codebase). Your own habits are almost certainly different. Instead
+of copying it, just run `learn-mode-builder` and let it build a skill from *your* conversation.
 
-Note this example is itself scoped to one context — "understanding a real codebase by reading its
-source." The builder produces a **separate, distinctly-named skill** for a different context (e.g.
-general conceptual/technical learning not anchored to a specific repo) rather than folding everything
-into one skill — see "How it works" below.
+Also note: this example only covers one kind of situation — "understanding a codebase." If you use
+the builder for a completely different kind of learning (say, picking up a new general skill that
+isn't tied to any codebase), it will create a **second, separately named** skill for that instead of
+mixing the two together. More on this below.
 
 ## How it works
 
-1. Have a few real technical conversations with Claude — ask questions the way you normally would,
-   and react the way you normally would to the first answer (push back, ask for simpler terms, ask
-   about edge cases, whatever's genuine to you).
-2. Ask Claude to run the builder: *"Build me a learn-mode skill based on this conversation."*
-3. The builder checks whether you already have a learn-mode-style skill installed and whether this
-   conversation is more signal for that one, or a **genuinely separate context** (e.g. codebase
-   understanding vs. learning an unrelated technical skill — different verification substrate,
-   different natural scope) — only the latter produces a new, distinctly-named skill rather than
-   folding into an existing one.
-4. It then reads back over the conversation, identifies your actual recurring pattern — including
-   whether that pattern itself varies by *category of question within this one conversation* (e.g.
-   verify-hard on mechanism questions, quick and plain on definitions, opinionated on design critique) —
-   and writes a new skill file: one file, with an internal "calibrate by category" section if the
-   evidence supports it, never split into multiple competing files for within-conversation categories.
-5. It asks you where to save it (user-level vs. project-level) and what to name it — and if it's
-   coexisting with another learn-mode-style skill, names and describes both so their territory doesn't
-   overlap.
-6. If the conversation so far is too thin to confidently detect a real pattern, the builder says so
-   plainly instead of inventing one, and either asks you directly what to emphasize or offers to build
-   a lighter starting skill to refine later.
+1. Have a normal conversation with Claude — ask questions the way you normally do, and react to the
+   answers the way you normally would.
+2. Ask Claude: *"Build me a learn-mode skill based on this conversation."*
+3. First, the builder checks if you already have a similar skill installed. If this conversation is
+   just more of the same kind of thing, it improves your existing skill. If it's a genuinely different
+   kind of learning (like a different topic that needs different handling), it creates a **new, separately
+   named** skill instead of mixing the two together.
+4. Then it studies the conversation and figures out your actual pattern — for example, do you want
+   deep verification for technical questions but a quick plain answer for simple definitions? If your
+   habits differ depending on the kind of question, it builds that in as one skill with built-in
+   "switch modes depending on the question" logic — not several separate skills fighting to answer the
+   same question.
+5. It asks you where to save the skill (just for one project, or for everything you do) and what to
+   name it. If you already have another similar skill, it makes sure the new one's name and description
+   don't overlap or clash with it.
+6. If your conversation so far is too short to tell your real pattern, it says so honestly instead of
+   guessing — and either asks you a couple of quick questions, or builds a simple starting version you
+   can refine later.
 
-`examples/codebase-learn-mode` is what step 4-5 actually produced for one real codebase-understanding
-conversation — read it to see the category-routing section in practice.
+Want to see this in action? `examples/codebase-learn-mode` is a real skill the builder produced this
+way — open it to see what a finished, personalized skill looks like.
 
 ## Installation
 
-`learn-mode-builder` is a plain [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) — a
-folder containing a `SKILL.md` with YAML frontmatter (`name` + `description`) and instructions in the
-body. Claude Code auto-loads any skill it finds under a skills directory; no build step is required.
+`learn-mode-builder` is a simple skill folder containing one file, `SKILL.md`. Claude Code
+automatically finds and loads any skill placed in the right folder — nothing to build or configure.
 
-### Option A — via `npx skills` (recommended)
+### Option A — using `npx skills` (recommended, easiest)
 
-[`npx skills`](https://www.npmjs.com/package/skills) scans a GitHub repo for `SKILL.md` files and
-installs the ones you pick, without you needing to clone or path-juggle. It correctly finds only
-`learn-mode-builder` here — the `examples/` folder is not picked up as an installable skill.
+[`npx skills`](https://www.npmjs.com/package/skills) can install the skill straight from GitHub — no
+need to clone the repo yourself.
 
 ```bash
-# Install to your user-level skills (available in every project)
+# Install for every project you work on
 npx skills add jaimin-dekavadiya-simform/learn-mode-skill -g
 
-# Or install to the current project only
+# Or install for just the current project
 npx skills add jaimin-dekavadiya-simform/learn-mode-skill
 
-# See what would be installed first, without installing
+# Just want to check what it would install first? Use -l
 npx skills add jaimin-dekavadiya-simform/learn-mode-skill -l
 ```
 
-### Option B — manual clone and copy
+It only picks up `learn-mode-builder` — the `examples/` folder is correctly ignored.
 
-### 1. Clone the repo
+### Option B — clone and copy it yourself
+
+**1. Clone the repo:**
 
 ```bash
 git clone git@github.com:jaimin-dekavadiya-simform/learn-mode-skill.git
 cd learn-mode-skill
 ```
 
-### 2. Install as a user-level skill (available in every project)
+**2. Copy it so it works in every project:**
 
 ```bash
 mkdir -p ~/.claude/skills
 cp -r skills/learn-mode-builder ~/.claude/skills/learn-mode-builder
 ```
 
-### 3. (Alternative) Install as a project-level skill (this repo only)
+**2 (alternative). Or copy it so it only works in one project:**
 
 ```bash
 mkdir -p .claude/skills
 cp -r /path/to/learn-mode-skill/skills/learn-mode-builder .claude/skills/learn-mode-builder
 ```
 
-### 4. Use it
+### Try it
 
-Start (or restart) a Claude Code session, have a real conversation, then ask:
+Start a Claude Code session, have a real conversation, then say:
 
 > "Build me a learn-mode skill based on this conversation."
 
-The builder will produce a **new** skill file specific to you — it will not install or suggest
-`examples/codebase-learn-mode` for you to use directly.
+It will write a **new** skill made for you — it won't just hand you `examples/codebase-learn-mode` to
+use as-is.
 
 ## Repo layout
 
@@ -123,9 +117,9 @@ learn-mode-skill/
 │       └── SKILL.md              # the skill you install
 └── examples/
     └── codebase-learn-mode/
-        └── SKILL.md               # sample output only — not for installation
+        └── SKILL.md               # example output only — don't install this
 ```
 
 ## License
 
-No license specified yet — add one (e.g. MIT) if you intend for others to reuse or modify this skill.
+No license yet — add one (like MIT) if you want other people to be free to reuse or change this skill.
