@@ -52,6 +52,22 @@ mixing the two together. More on this below.
 Want to see this in action? `examples/codebase-learn-mode` is a real skill the builder produced this
 way — open it to see what a finished, personalized skill looks like.
 
+## What actually makes it build a better skill
+
+It's **not** just having a longer conversation. A long conversation with no real reactions in it (you
+just say "ok, thanks" every time) gives the builder almost nothing to work with. What actually helps:
+
+- **React the way you genuinely would**, not just ask questions — push back, ask for it simpler, ask
+  "but what about X," whatever you'd normally do. That reaction is the actual signal.
+- **Do it more than once.** One pushback could be a one-off; the same reaction showing up two or three
+  times is what tells the builder it's a real habit, not a fluke.
+- **Ask a few different kinds of questions**, not just one kind. That's the only way the builder can
+  tell whether your habits change depending on the topic (e.g. you verify hard on code but want quick
+  plain answers on definitions) versus staying the same no matter what.
+
+So: a shorter conversation with a few clear, repeated reactions beats a much longer one where you never
+react the same way twice.
+
 ## Installation
 
 `learn-mode-builder` is a simple skill folder containing one file, `SKILL.md`. Claude Code
