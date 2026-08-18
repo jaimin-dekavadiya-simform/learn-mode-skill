@@ -64,6 +64,25 @@ conversation — read it to see the category-routing section in practice.
 folder containing a `SKILL.md` with YAML frontmatter (`name` + `description`) and instructions in the
 body. Claude Code auto-loads any skill it finds under a skills directory; no build step is required.
 
+### Option A — via `npx skills` (recommended)
+
+[`npx skills`](https://www.npmjs.com/package/skills) scans a GitHub repo for `SKILL.md` files and
+installs the ones you pick, without you needing to clone or path-juggle. It correctly finds only
+`learn-mode-builder` here — the `examples/` folder is not picked up as an installable skill.
+
+```bash
+# Install to your user-level skills (available in every project)
+npx skills add jaimin-dekavadiya-simform/learn-mode-skill -g
+
+# Or install to the current project only
+npx skills add jaimin-dekavadiya-simform/learn-mode-skill
+
+# See what would be installed first, without installing
+npx skills add jaimin-dekavadiya-simform/learn-mode-skill -l
+```
+
+### Option B — manual clone and copy
+
 ### 1. Clone the repo
 
 ```bash
